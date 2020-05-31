@@ -8,6 +8,7 @@ const configureAuth0Client = (): Auth0Client => {
   const auth0Config: Auth0ClientOptions = {
     domain: "klee-test.au.auth0.com",
     client_id: "wwk4gzlOJENxSd97zZtbsxJp5qQq4oI3",
+    audience: "TheSweetestAPI",
   };
   return new Auth0Client(auth0Config);
 };
@@ -19,12 +20,15 @@ function useAuth0(): {
   getUser: () => Promise<void>;
   userData: string;
   gravatar: string;
+  getAccessToken: () => Promise<void>;
+  accessToken: string;
 } {
   // The state needed to show the user is logged in.
   const [isLoggedIn, setLoggedIn] = useState(false);
   const [auth0Client, setAuth0Client] = useState<Auth0Client>();
   const [userData, setUserData] = useState("Nothing Yet");
   const [gravatar, setGravatar] = useState("");
+  const [accessToken, setAccessToken] = useState("");
 
   // To  avoid creating a new instance of the client on each render
   if (!auth0Client) {
@@ -69,6 +73,15 @@ function useAuth0(): {
       console.error(e);
     }
   }
+
+  async function getAccessToken(): Promise<void> {
+    try {
+      const token = await auth0Client?.getTokenSilently();
+      setAccessToken(token);
+    } catch (e) {
+      console.log(e);
+    }
+  }
   return {
     login,
     logout,
@@ -76,6 +89,8 @@ function useAuth0(): {
     getUser,
     userData,
     gravatar,
+    accessToken,
+    getAccessToken,
   };
 }
 
@@ -94,6 +109,9 @@ function App() {
       <p>User Data from id_token : {auth.userData}</p>
       {/* Display user avatar */}
       <img src={auth.gravatar} alt="Avatar from Gravatar" />
+      <hr />
+      <button onClick={auth.getAccessToken}>Get Access Token</button>
+      <p>{auth.accessToken}</p>
     </div>
   );
 }
