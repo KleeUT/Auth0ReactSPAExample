@@ -76,8 +76,8 @@ function useAuth0(): {
 
   async function getAccessToken(): Promise<void> {
     try {
-      const t = await auth0Client?.getTokenSilently();
-      setAccessToken(t);
+      const token = await auth0Client?.getTokenSilently();
+      setAccessToken(token);
     } catch (e) {
       console.log(e);
     }
