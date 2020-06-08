@@ -1,19 +1,17 @@
-Following on from the previous post where we got a JWT access token from Auth0. This post will go over how to secure an Express API, so tha certain endpoints can only be accessed by authenticated users.
+Following on from the [previous post](https://dev.to/kleeut/getting-a-jwt-access-token-from-auth0-3e81) where we got a JWT access token from Auth0. This post will go over how to secure an Express API, so tha certain endpoints can only be accessed by authenticated users.
 
 # Create an express API.
 
 ## Set up the project
 
-Before starting there is a little bit of
+Before starting there is a little bit of set up to do to get a project with Typescript.
 
-In a new folder run
+In a new folder run `npm init -y` - To add a `package.json` file to the folder.
 
-`npm init -y` - To add a `package.json` file to the folder
+Add Typescript by installing the `typescript`
+`npm i --save-dev typescript`
 
-Add Typescript
-`npm i --save-dev typescript @types/express`
-
-Add a `tsconfig.json` file with this contents.
+Add a `tsconfig.json` file with this contents to configure Typescript.
 
 ```json
 {
@@ -47,7 +45,7 @@ Add a build script to the `package.json` file.
 
 ## Set up express
 
-Run `npm i express` to add the express package that we'll use to create the web server.
+Run `npm i express @types/express` to add the express package and the relevant typings from `@types`.
 
 Make a new file `src/server.ts`
 
@@ -77,11 +75,11 @@ app.listen(port, () => {
 });
 ```
 
-## Adding an authenticated endpoint
+# Adding an authenticated endpoint
 
-With the basic server structure set up lets add an endpoint that will be protected. Lest give this an very original path of `/protected`
+With the basic server structure set up lets add an endpoint that will be protected. Lest give this an very original path of `/private`.
 
-Install some extra packages to help take care of the undifferentiated heavy lifting.
+First install some extra packages to help take care of the undifferentiated heavy lifting of parsing and validating the authentication header and JWT.
 
 The (`express-jwt`)[https://github.com/auth0/express-jwt] package that will validate the JWT access token provided and the [`jwks-rsa`](https://github.com/auth0/node-jwks-rsa) package that will handle fetching the correct public key to use when validating the token.
 
@@ -106,7 +104,7 @@ const jwksCallback = jwks.expressJwtSecret({
 });
 ```
 
-The JWKS endpoint can be found in the application under Advanced Settings -> Endpoints
+> The JWKS endpoint can be found in the application under Advanced Settings -> Endpoints
 
 Configure the JWT middleware to use teh jwks callback, accept tokens with the correct audience and issuer parameters and, limit the signing methods to `RS256` to avoid potential JWT exploits.
 
@@ -123,7 +121,7 @@ var requireJWTAuthentication = jwt({
 ```
 
 Finally add a protected endpoint with some secret information making use of the JWT middleware to ensure that only authenticated parties can access it.
-The middleware will add a `user` property to the request parameter that includes the decoded body of a valid token.
+The middleware will add a `user` property to the request parameter that includes the decoded body of a valid token. Return as string version of this user property with the response to prove that it's there.
 
 ```typescript
 app.get(
@@ -143,7 +141,7 @@ app.get(
 
 ### Build and run the server
 
-Add or update these scripts in the `package.json` file to speed up building and running of the server.
+Add or update the build and run scripts in the `package.json` file to speed up building and running of the server.
 
 ```json
   "scripts": {
@@ -175,6 +173,8 @@ Now when the request is sent the response will return with a `200` status and a 
 
 If you tamper with the JWT and send the request again the request will return with a `401` status and a message stating `UnauthorizedError: invalid token`.
 ![401 response from /private endpoint after modifying the token](https://dev-to-uploads.s3.amazonaws.com/i/41fgf1gji9ffp19aym8g.png)
+
+Code for everything in this blog can be found [on Github](https://github.com/KleeUT/Auth0ReactSPAExample)
 
 ---
 
