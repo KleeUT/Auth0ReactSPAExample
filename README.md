@@ -6,3 +6,5 @@ For details on how it comes together see the [blogs](./blogs) folder.
 
 - [Setting up the SPA and Auth0 application](./blogs/SetUpSPA/blog.md)
 - [Getting a JWT access token](./blogs/JWTAccessToken/blog.md)
+- [Preventing the consent prompt for local development](./blogs/preventPrompt/blog.md)
+- [Protecting an ExpressJS API using Auth0](./blogs/ProtectAnExpressAPI/blog.md)
