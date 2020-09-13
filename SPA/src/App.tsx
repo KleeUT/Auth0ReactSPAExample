@@ -1,17 +1,23 @@
 import React, { useState } from "react";
 import "./App.css";
 
-import { Auth0Client, Auth0ClientOptions } from "@auth0/auth0-spa-js";
+import createClient, { Auth0Client, Auth0ClientOptions } from "@auth0/auth0-spa-js";
+
+const auth0Config: Auth0ClientOptions = {
+  domain: "klee-test.au.auth0.com",
+  client_id: "wwk4gzlOJENxSd97zZtbsxJp5qQq4oI3",
+  audience: "TheSweetestAPI",
+};
 
 const configureAuth0Client = (): Auth0Client => {
   console.log("Making new client");
-  const auth0Config: Auth0ClientOptions = {
-    domain: "klee-test.au.auth0.com",
-    client_id: "wwk4gzlOJENxSd97zZtbsxJp5qQq4oI3",
-    audience: "TheSweetestAPI",
-  };
   return new Auth0Client(auth0Config);
 };
+
+
+async function clientMaker(): Promise<Auth0Client>{
+  return createClient(auth0Config);
+}
 
 function useAuth0(): {
   login: () => Promise<void>;
@@ -21,6 +27,7 @@ function useAuth0(): {
   userData: string;
   gravatar: string;
   getAccessToken: () => Promise<void>;
+  silentClient: () => Promise<void>;
   accessToken: string;
 } {
   // The state needed to show the user is logged in.
@@ -35,10 +42,23 @@ function useAuth0(): {
     setAuth0Client(configureAuth0Client());
   }
 
+  async function silentClient() : Promise<void>{
+    const c = await clientMaker();
+    setAuth0Client(c);
+    const a = await c.isAuthenticated()
+    const data = await c?.getUser();
+    // Make the user data into a string so we can dump it to the screen.
+    setUserData(JSON.stringify(data));
+    // Set the source for the user avatar
+    // setGravatar(data.picture);
+    setLoggedIn(a);
+
+  }
+
   async function login(): Promise<void> {
     try {
       // Wait for Auth0 to do the OIDC work for us.
-      await auth0Client?.loginWithPopup();
+      await auth0Client?.loginWithPopup({extraP:"this is extra", login_hint:"ITs me mario"});
       // Update the state to represent that the user has logged in.
       setLoggedIn(true);
     } catch (e) {
@@ -76,7 +96,7 @@ function useAuth0(): {
 
   async function getAccessToken(): Promise<void> {
     try {
-      const token = await auth0Client?.getTokenSilently();
+      const token = await auth0Client?.getTokenSilently({silent:"no one is going to talk", extra:"Luigi Mario"});
       setAccessToken(token);
     } catch (e) {
       console.log(e);
@@ -91,6 +111,7 @@ function useAuth0(): {
     gravatar,
     accessToken,
     getAccessToken,
+    silentClient
   };
 }
 
@@ -99,6 +120,7 @@ function App() {
   return (
     <div className="App">
       {/* Buttons for log in and log out functionality */}
+      <button onClick={auth.silentClient}>Silent Login?</button>
       <button onClick={auth.login}>Login</button>
       <button onClick={auth.logout}>Logout</button>
       {/* Displaly if the user is logged in */}
